@@ -20,7 +20,10 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Routes
 const authRoutes = require('./src/routes/auth');
+const testRoutes = require('./src/routes/test');  // ← add this
+
 app.use('/api/auth', authRoutes);
+app.use('/api/test', testRoutes);  // ← add this
 
 app.get('/', (req, res) => {
   res.json({ message: 'Video App Backend Running' });
