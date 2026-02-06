@@ -1,4 +1,5 @@
 const Video = require('../models/Video');
+const AuditLog = require('../models/AuditLog');
 
 const uploadVideo = async (req, res) => {
   try {
@@ -6,6 +7,7 @@ const uploadVideo = async (req, res) => {
       return res.status(400).json({ message: 'No video file uploaded' });
     }
 
+    // 1. Create and Save the Video
     const video = new Video({
       title: req.body.title || req.file.originalname,
       description: req.body.description || '',
@@ -20,11 +22,24 @@ const uploadVideo = async (req, res) => {
 
     await video.save();
 
+    // 2. Create Audit Log 
+    // FIXED: Changed 'newVideo' to 'video'
+    const auditlog = new AuditLog({
+      action: 'VIDEO_UPLOAD',
+      performedBy: req.user._id,
+      targetId: video._id, 
+      details: `Uploaded new video: "${video.title}"`
+    });
+
+    await auditlog.save();
+
+    // 3. Start Processing
     const io = req.app.get('io');
     const { simulateProcessing } = require('../services/videoProcessing');
 
     simulateProcessing(video._id, io);
 
+    // 4. Send Success Response
     res.status(201).json({
       message: 'Video uploaded successfully (processing started)',
       video: {
@@ -35,7 +50,7 @@ const uploadVideo = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Upload Controller Error:", err); // This will now show you the exact error in your console
     res.status(500).json({ message: 'Error uploading video' });
   }
 };

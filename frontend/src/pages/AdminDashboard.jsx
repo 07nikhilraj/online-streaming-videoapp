@@ -7,24 +7,28 @@ import toast from 'react-hot-toast';
 import DashboardHeader from './DashboardHeader';
 import VideoCard from './VideoCard';
 import UserTable from './UserTable';
+import AuditLogTable from './AuditLogTable';
 
 export default function AdminDashboard() {
   const { user, logout: contextLogout } = useAuth();
   const [videos, setVideos] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [logs, setLogs] = useState([]);
 
   // 1. Fetch all data (Users and Videos)
   const fetchAdminData = async () => {
     setLoading(true);
     try {
       // Hits your router.get('/') in user.js and router.get('/admin/all') in video.js
-      const [userRes, videoRes] = await Promise.all([
+      const [userRes, videoRes, logRes] = await Promise.all([
         axios.get('/api/users/'),
-        axios.get('api/videos/admin/all')
+        axios.get('api/videos/admin/all'),
+        axios.get('/api/admin/logs')
       ]);
 
       setUsers(userRes.data);
+      setLogs(logRes.data);
       setVideos(Array.isArray(videoRes.data) ? videoRes.data : videoRes.data.videos || []);
     } catch (err) {
       console.error('Admin Data Fetch Error:', err);
@@ -108,6 +112,7 @@ export default function AdminDashboard() {
           {/* Section 1: User Management */}
           <section style={{ marginBottom: '4rem' }}>
             <UserTable users={users} setUsers={setUsers} />
+            <AuditLogTable logs={logs}/>
           </section>
 
           <hr style={{ border: '0', borderTop: '1px solid #f3f4f6', marginBottom: '3rem' }} />

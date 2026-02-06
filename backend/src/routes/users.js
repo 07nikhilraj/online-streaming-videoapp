@@ -1,6 +1,7 @@
 const express = require('express');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const Log = require('../models/AuditLog');
 
 const router = express.Router();
 
@@ -16,25 +17,21 @@ router.get(
 );
 
 // Admin: update user role
-router.patch(
-  '/:id/role',
-  protect,
-  restrictTo('admin'),
-  async (req, res) => {
-    const { role } = req.body;
+router.patch('/:id/role', protect, restrictTo('admin'), async (req, res) => {
+  const { role } = req.body;
+  const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true });
 
-    if (req.params.id === req.user._id.toString()) {
-      return res.status(400).json({ message: 'Cannot change your own role' });
-    }
+  // done
+  const auditlog = new AuditLog({
+    action: 'ROLE_UPDATE',
+    performedBy: req.user._id,
+    targetId: user._id,
+    details: `Changed role of ${user.email} to ${role}`
+  });
+  
+   await auditlog.save()
 
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { role },
-      { new: true }
-    );
-
-    res.json(user);
-  }
-);
+  res.json(user);
+});
 
 module.exports = router;

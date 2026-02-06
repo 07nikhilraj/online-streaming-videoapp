@@ -3,6 +3,7 @@ const upload = require('../utils/multerConfig');
 const { uploadVideo } = require('../controllers/videoController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 const Video = require('../models/Video');
+const AuditLog = require('../models/AuditLog');
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ router.post(
   '/upload',
   protect,
   restrictTo('editor', 'admin'),
-  upload.single('video'),     // 'video' = field name in form
+  upload.single('video'),     
   uploadVideo
 );
 
@@ -51,6 +52,13 @@ router.delete('/:id', protect, async (req, res) => {
 
     await Video.findByIdAndDelete(req.params.id);
 
+    auditlog = new AuditLog({
+      action: 'VIDEO_DELETE',
+      performedBy: req.user._id,
+      details: `Deleted video "${video.title}" (File: ${video.originalName})`
+    })
+
+    auditlog.save()
     res.json({ message: 'Video deleted successfully' });
   } catch (err) {
     console.error(err);
@@ -93,6 +101,16 @@ router.patch('/:id/share', protect, async (req, res) => {
     }
     video.isShared = isShared;
     await video.save();
+
+    // done
+    const auditlog = new AuditLog({
+      action: 'VIDEO_SHARE_TOGGLE',
+      performedBy: req.user._id,
+      targetId: video._id,
+      details: `${isShared ? 'Shared' : 'Unshared'} video "${video.title}"`
+    });
+    await auditlog.save()
+
     res.json({
       message: 'Share status updated',
       videoId: video._id,
@@ -119,6 +137,15 @@ router.patch('/:id', protect, async (req, res) => {
     if (title !== undefined) video.title = title;
     if (description !== undefined) video.description = description;
     await video.save();
+
+    // done
+    const auditlog = new AuditLog({
+      action: 'VIDEO_EDIT',
+      performedBy: req.user._id,
+      targetId: video._id,
+      details: `Updated metadata for "${oldTitle}". New title: "${video.title}"`
+    });
+    auditlog.save()
 
     res.json({ message: 'Video updated', video });
   } catch (err) {
