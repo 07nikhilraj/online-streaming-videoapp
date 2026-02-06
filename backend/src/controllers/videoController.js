@@ -18,6 +18,7 @@ const uploadVideo = async (req, res) => {
       mimeType: req.file.mimetype,
       uploadedBy: req.user._id,
       status: 'pending',
+      organizationId: req.user.organizationId,
     });
 
     await video.save();

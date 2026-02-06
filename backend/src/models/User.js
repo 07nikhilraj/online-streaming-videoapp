@@ -25,6 +25,12 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  organizationId: { 
+    type: String, 
+    required: true, 
+    index: true,
+    default: 'org_main' // Default for existing users
+  }
 });
 
 // IMPORTANT: Password hashing middleware

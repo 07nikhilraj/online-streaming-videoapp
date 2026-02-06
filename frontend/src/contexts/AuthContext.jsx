@@ -11,17 +11,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Set base URL once
   axios.defaults.baseURL = 'http://localhost:5000';
 
-  // Attach token to EVERY request via interceptor (most reliable way)
   useEffect(() => {
     const interceptor = axios.interceptors.request.use(
       (config) => {
         const currentToken = localStorage.getItem('token');
         if (currentToken) {
           config.headers.Authorization = `Bearer ${currentToken}`;
-          console.log('Axios request with token:', currentToken.substring(0, 10) + '...'); // debug (remove later)
         } else {
           delete config.headers.Authorization;
         }
@@ -30,36 +27,35 @@ export const AuthProvider = ({ children }) => {
       (error) => Promise.reject(error)
     );
 
-    // Cleanup interceptor on unmount
     return () => {
       axios.interceptors.request.eject(interceptor);
     };
-  }, []); // runs once on mount
+  }, []);
 
-  // Load initial user state on token change
-useEffect(() => {
-  const loadUser = () => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      try {
-        // Decode JWT to get user info (no backend call needed for now)
-        const payload = JSON.parse(atob(storedToken.split('.')[1]));
-        setUser({
-          id: payload.id,
-          email: payload.email,
-          role: payload.role,
-        });
-        setToken(storedToken);
-      } catch (err) {
-        console.error('Invalid token on load', err);
-        logout();
+  useEffect(() => {
+    const loadUser = () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        try {
+          // Decode JWT to get user info
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          setUser({
+            id: payload.id,
+            email: payload.email,
+            role: payload.role,
+            organizationId: payload.organizationId, // Added organizationId from JWT
+          });
+          setToken(storedToken);
+        } catch (err) {
+          console.error('Invalid token on load', err);
+          logout();
+        }
       }
-    }
-    setLoading(false);
-  };
+      setLoading(false);
+    };
 
-  loadUser();
-}, []); 
+    loadUser();
+  }, []); 
 
   const login = async (email, password) => {
     try {
@@ -74,9 +70,15 @@ useEffect(() => {
     }
   };
 
-  const register = async (email, password, role = 'viewer') => {
+  // UPDATED: Added organizationId parameter
+  const register = async (email, password, role = 'viewer', organizationId) => {
     try {
-      const res = await axios.post('/api/auth/register', { email, password, role });
+      const res = await axios.post('/api/auth/register', { 
+        email, 
+        password, 
+        role, 
+        organizationId // Now sending orgId to backend
+      });
       const { token: newToken, user: newUser } = res.data;
       localStorage.setItem('token', newToken);
       setToken(newToken);

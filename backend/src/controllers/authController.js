@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    // 1. Added organizationId to the destructuring
+    const { email, password, role, organizationId } = req.body;
 
-    // Basic validation (more can be added with express-validator later)
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+    if (!email || !password || !organizationId) {
+      return res.status(400).json({ message: 'Email, password, and Organization ID are required' });
     }
 
     const existingUser = await User.findOne({ email });
@@ -16,18 +16,24 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Only allow 'admin' to create other admins (for now we allow any role, tighten later)
+    // 2. Create user with organizationId
     const user = new User({
       email,
       password,
-      role: role || 'viewer', // default to viewer
+      role: role || 'viewer',
+      organizationId: organizationId.toLowerCase().trim(), // Normalize org names
     });
 
     await user.save();
 
-    // Generate JWT
+    // 3. Include organizationId in the JWT
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { 
+        id: user._id, 
+        email: user.email, 
+        role: user.role, 
+        organizationId: user.organizationId 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -39,6 +45,7 @@ const register = async (req, res) => {
         id: user._id,
         email: user.email,
         role: user.role,
+        organizationId: user.organizationId,
       },
     });
   } catch (err) {
@@ -55,6 +62,7 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
+    // 4. Ensure organizationId is fetched during login
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -65,8 +73,14 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // 5. Include organizationId in the JWT so the frontend knows which Org dashboard to show
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { 
+        id: user._id, 
+        email: user.email, 
+        role: user.role, 
+        organizationId: user.organizationId 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -78,6 +92,7 @@ const login = async (req, res) => {
         id: user._id,
         email: user.email,
         role: user.role,
+        organizationId: user.organizationId,
       },
     });
   } catch (err) {

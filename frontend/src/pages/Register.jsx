@@ -10,6 +10,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const [orgId, setOrgId] = useState('org_main');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,7 +19,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await register(email, password, role);
+      await register(email, password, role, orgId);
     } catch (err) {
       setError(err?.response?.data?.message || 'Registration failed');
     } finally {
@@ -118,6 +119,15 @@ const Register = () => {
               }}
               required
             />
+          </div>
+
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={{ display: 'block', color: '#374151', fontSize: '0.875rem' }}>Organization Code</label>
+            <input 
+            type="text" 
+            value={orgId} 
+            onChange={(e) => setOrgId(e.target.value)} 
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '0.5rem' }} />
           </div>
 
           <div style={{ marginBottom: '2rem' }}>
