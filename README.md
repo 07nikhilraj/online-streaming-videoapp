@@ -73,29 +73,47 @@ npm run dev
 
 Open http://localhost:5173  
 
-## Project Structure
+```text
 project-root/
-├── backend/
-│   ├── models/           User, Video, Log
-│   ├── routes/           auth, videos, users
-│   ├── controllers/
-│   ├── middleware/       auth protect & restrictTo
-│   ├── services/         videoProcessing.js
-│   ├── utils/            multerConfig, socket helpers
-│   ├── scripts/          cleanup-video-enums.js
-│   ├── server.js
-│   └── uploads/          (generated - video files)
-├── frontend/
-│   ├── src/
-│   │   ├── components/   VideoCard, UserTable, etc.
-│   │   ├── contexts/     AuthContext
-│   │   ├── pages/        Dashboard, Admin
-│   │   ├── utils/        socket.js
-│   │   └── main.jsx
-│   └── vite.config.js
-└── README.md
+├── backend/                          # Node.js/Express server
+│   ├── models/                       # Mongoose schemas (User, Video, AuditLog)
+│   ├── routes/                       # API endpoints (Auth, Video, User Management)
+│   ├── controllers/                  # Request handlers and business logic
+│   ├── middleware/                   # JWT Authentication & RBAC (Role-Based Access Control)
+│   ├── services/                     # Core Processing (FFmpeg pipeline + Socket.io emits)
+│   ├── utils/                        # Helpers (Multer configuration, etc.)
+│   ├── scripts/                      # Database maintenance & cleanup utilities
+│   ├── uploads/                      # Local storage for original and optimized videos
+│   ├── server.js                     # Entry point: Express + Socket.io initialization
+│   └── .env                          # Backend environment variables
+│
+└── frontend/                         # React + Vite application
+    ├── src/
+    │   ├── components/               # UI Components (VideoCard, UserTable, Layouts)
+    │   ├── contexts/                 # Global State (AuthContext for session/socket mgmt)
+    │   ├── pages/                    # Main Views (Dashboard, Admin Panel, Login)
+    │   ├── utils/                    # Frontend helpers (Socket.io client init)
+    │   ├── App.jsx                   # Main Routing & Provider wrapper
+    │   └── main.jsx                  # React DOM entry point
+    ├── vite.config.js                # Vite configuration
+    └── .env                          # Frontend environment variables## API Endpoints (Summary)
+```
 
-## API Endpoints (Summary)
+## 🛠️ Folder Purposes
+
+### **Backend (`/backend`)**
+* **Models**: Defines the data structure for MongoDB. Includes user profiles, video metadata, and audit logs for tracking actions.
+* **Services**: The "brain" of the app. `videoProcessing.js` handles the heavy lifting—using FFmpeg to transcode videos and sending real-time progress updates via Socket.io.
+* **Controllers**: Bridges the routes and services. Handles logic like mapping organization IDs and triggering the processing pipeline.
+* **Uploads**: A generated directory where videos live. 
+  > **Note:** In production, this would typically be replaced by cloud storage (AWS S3/Google Cloud Storage).
+
+### **Frontend (`/frontend`)**
+* **Components**: Modular UI pieces. `VideoCard.jsx` is the primary interface for video status, real-time progress bars, and the video player.
+* **Contexts**: `AuthContext.jsx` manages the user session and ensures the Socket.io connection is tied to the logged-in user for private updates.
+* **Utils**: Contains `socket.js`, which initializes the real-time bridge to the backend server.
+
+---
 
 ### Auth
 - POST `/api/auth/login`
