@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
 import toast from 'react-hot-toast'
@@ -22,12 +23,13 @@ const Dashboard = () => {
   const [uploadError, setUploadError] = useState('');
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [socket, setSocket] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.role === 'admin') {
-      window.location.replace('/admin');
+      navigate('/admin');
     }
-  }, [user]);
+  }, [user, navigate]);
 
 
   // Socket setup (unchanged)
