@@ -58,4 +58,19 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
+// Get ALL videos (for viewers & admin)
+router.get('/all', protect, async (req, res) => {
+  try {
+    // Everyone authenticated can see all (no ownership check)
+    const videos = await Video.find()
+      .select('title originalName filename mimeType status sensitivity uploadedBy createdAt')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(videos);
+  } catch (err) {
+    console.error('Error fetching all videos:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
