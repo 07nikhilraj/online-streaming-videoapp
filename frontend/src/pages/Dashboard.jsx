@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import io from 'socket.io-client';
+import toast from 'react-hot-toast'
 
 import DashboardHeader from './DashboardHeader';
 import UploadForm from './UploadForm';
@@ -92,7 +93,10 @@ const Dashboard = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!selectedFile) return alert('Select a video');
+    if (!selectedFile){
+      toast.error('Please select a video file');
+      return;
+    }
 
     setUploading(true);
     setUploadError('');
@@ -112,12 +116,14 @@ const Dashboard = () => {
       };
       setVideos((prev) => [newVideo, ...prev]);
       setProgress((prev) => ({ ...prev, [newVideo._id]: 0 }));
-      alert('Upload successful! Processing...');
+      toast.success('Upload successful! Processing started...');
       setSelectedFile(null);
       setTitle('');
       setDescription('');
     } catch (err) {
-      setUploadError(err.response?.data?.message || 'Upload failed');
+      const errorMsg = err.response?.data?.message || 'Upload failed';
+      setUploadError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setUploading(false);
     }
@@ -128,9 +134,9 @@ const Dashboard = () => {
     try {
       await axios.delete(`/api/videos/${videoId}`);
       setVideos(prev => prev.filter(v => v._id !== videoId));
-      alert('Deleted');
+      toast.success('Video deleted successfully');
     } catch (err) {
-      alert('Delete failed');
+      toast.error('Failed to delete video');
     }
   };
 
