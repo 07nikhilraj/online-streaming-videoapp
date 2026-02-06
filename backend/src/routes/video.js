@@ -66,6 +66,40 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
+// routes/video.js
+
+// Assign a viewer to a video
+router.patch('/:id/assign', protect, restrictTo('editor', 'admin'), async (req, res) => {
+  try {
+    const { email } = req.body;
+    const video = await Video.findById(req.params.id);
+
+    if (!video) return res.status(404).json({ message: 'Video not found' });
+    
+    // Check ownership
+    if (video.uploadedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    if (!video.allowedViewers.includes(email)) {
+      video.allowedViewers.push(email.toLowerCase());
+      await video.save();
+      
+      const auditlog = new AuditLog({
+        action: 'VIDEO_ASSIGN',
+        performedBy: req.user._id,
+        details: `Assigned video "${video.title}" to user ${email}`
+      });
+
+      await auditlog.save()
+    }
+
+    res.json({ message: 'User assigned successfully', allowedViewers: video.allowedViewers });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Admin: get ALL videos
 router.get(
   '/admin/all',
@@ -156,9 +190,13 @@ router.patch('/:id', protect, async (req, res) => {
 // Get shared videos (for viewers)
 router.get('/shared-videos', protect, async (req, res) => {
   try {
-    const videos = await Video.find({ isShared: true })
-      .select('title originalName description filename mimeType status sensitivity uploadedBy createdAt isShared')
-      .sort({ createdAt: -1 });
+    const videos = await Video.find({
+      $or: [
+        { isShared: true }, // Publicly shared
+        { allowedViewers: req.user.email } // Specifically assigned to this user
+      ]
+    }).populate('uploadedBy', 'email');
+    
     res.json(videos);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

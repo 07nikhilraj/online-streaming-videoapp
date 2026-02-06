@@ -7,6 +7,7 @@ export default function VideoCard({ video, progress = {}, user, onShareUpdate, h
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(video.title || '');
   const [editDesc, setEditDesc] = useState(video.description || '');
+  const [assignEmail, setAssignEmail] = useState('');
 
   // Check ownership: handle both populated object and plain ID string
   const uploaderId = video.uploadedBy?._id || video.uploadedBy;
@@ -27,6 +28,16 @@ export default function VideoCard({ video, progress = {}, user, onShareUpdate, h
       toast.error('Failed to update share status');
     }
   };
+
+  const handleAssign = async () => {
+  try {
+    await axios.patch(`/api/videos/${video._id}/assign`, { email: assignEmail });
+    alert(`Video assigned to ${assignEmail}`);
+    setAssignEmail('');
+  } catch (err) {
+    alert('Error assigning user');
+  }
+};
 
   const saveEdit = async () => {
     try {
@@ -186,6 +197,22 @@ export default function VideoCard({ video, progress = {}, user, onShareUpdate, h
             </div>
           </div>
         )}
+
+        {user.role !== 'viewer' && (
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+            <input 
+              type="email" 
+              placeholder="Viewer email..."
+              value={assignEmail}
+              onChange={(e) => setAssignEmail(e.target.value)}
+              style={{ flex: 1, padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+            <button onClick={handleAssign} style={{ backgroundColor: '#6366f1', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '4px', border: 'none' }}>
+              Assign
+            </button>
+          </div>
+        )}
+
       </div>
 
       {/* Edit Modal (unchanged logic, slightly cleaner styles) */}
