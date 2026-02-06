@@ -2,8 +2,14 @@ const Video = require('../models/Video');
 const ffmpeg = require('fluent-ffmpeg');
 const path = require('path');
 
-ffmpeg.setFfmpegPath('C:/ffmpeg-2026-02-04-git-627da1111c-essentials_build/bin/ffmpeg.exe'); 
-ffmpeg.setFfprobePath('C:/ffmpeg-2026-02-04-git-627da1111c-essentials_build/bin/ffprobe.exe');
+// ffmpeg.setFfmpegPath('C:/ffmpeg-2026-02-04-git-627da1111c-essentials_build/bin/ffmpeg.exe'); 
+// ffmpeg.setFfprobePath('C:/ffmpeg-2026-02-04-git-627da1111c-essentials_build/bin/ffprobe.exe');
+
+const ffmpegPath = require('ffmpeg-static');
+const ffprobePath = require('ffprobe-static').path;
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 const processVideo = async (videoId, io) => {
   let video;
