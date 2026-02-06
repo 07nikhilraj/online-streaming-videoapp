@@ -18,49 +18,142 @@ const Login = () => {
 
     try {
       await login(email, password);
+      // AuthContext handles the navigation usually, 
+      // but you can add navigate('/dashboard') here if needed.
     } catch (err) {
-      setError(err);
+      setError(err?.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+    <div style={{
+      minHeight: '100-vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#f3f4f6', // Matches your dashboard bg
+      padding: '1rem'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '2.5rem',
+        borderRadius: '1rem',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        width: '100%',
+        maxWidth: '400px',
+      }}>
+        <h2 style={{
+          fontSize: '1.875rem',
+          fontWeight: '700',
+          marginBottom: '1.5rem',
+          textAlign: 'center',
+          color: '#111827'
+        }}>
+          Login
+        </h2>
+
+        {error && (
+          <p style={{
+            color: '#ef4444',
+            backgroundColor: '#fee2e2',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
+            textAlign: 'center'
+          }}>
+            {error}
+          </p>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Email</label>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={{
+              display: 'block',
+              color: '#374151',
+              marginBottom: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '500'
+            }}>
+              Email Address
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 border rounded"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.5rem',
+                outline: 'none',
+                fontSize: '1rem'
+              }}
               required
             />
           </div>
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-2">Password</label>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{
+              display: 'block',
+              color: '#374151',
+              marginBottom: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '500'
+            }}>
+              Password
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border rounded"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.5rem',
+                outline: 'none',
+                fontSize: '1rem'
+              }}
               required
             />
           </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 disabled:bg-gray-400"
+            style={{
+              width: '100%',
+              backgroundColor: loading ? '#9ca3af' : '#6366f1', // Indigo color from your theme
+              color: 'white',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              fontWeight: '600',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'background-color 0.2s'
+            }}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Logging in...' : 'Sign In'}
           </button>
         </form>
-        <p className="mt-4 text-center">
-          No account? <Link to="/register" className="text-blue-600 hover:underline">Register</Link>
+
+        <p style={{
+          marginTop: '1.5rem',
+          textAlign: 'center',
+          fontSize: '0.875rem',
+          color: '#6b7280'
+        }}>
+          No account?{' '}
+          <Link to="/register" style={{
+            color: '#6366f1',
+            textDecoration: 'none',
+            fontWeight: '600'
+          }}>
+            Create one
+          </Link>
         </p>
       </div>
     </div>
