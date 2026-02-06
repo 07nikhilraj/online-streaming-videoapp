@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
-    "start": "cd backend && node server.js"
+    "start": "cd backend && node server.js",
+    "build": "echo \"Skipping build – backend only\""
   }
 }
