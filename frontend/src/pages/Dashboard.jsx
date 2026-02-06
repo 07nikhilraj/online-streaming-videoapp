@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import io from 'socket.io-client';
 import toast from 'react-hot-toast'
+import { ClipLoader } from 'react-spinners';
 
 import DashboardHeader from './DashboardHeader';
 import UploadForm from './UploadForm';
@@ -168,23 +169,31 @@ const Dashboard = () => {
             {user?.role === 'viewer' ? 'All Videos' : 'Your Videos'}
           </h2>
 
-          {loadingVideos ? (
-            <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>Loading videos...</p>
-          ) : videos.length === 0 ? (
-            <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>No videos available.</p>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-              {videos.map((video) => (
-                <VideoCard
-                  key={video._id}
-                  video={video}
-                  progress={progress}
-                  user={user}
-                  handleDelete={() => handleDelete(video._id)}
-                />
-              ))}
-            </div>
-          )}
+          // In Dashboard return (inside Videos Section)
+{loadingVideos ? (
+  <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+    <ClipLoader color="#6366f1" size={50} />
+    <p style={{ marginTop: '1rem', color: '#4b5563', fontSize: '1.1rem' }}>
+      Loading your videos...
+    </p>
+  </div>
+) : videos.length === 0 ? (
+  <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>
+    No videos available.
+  </p>
+) : (
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+    {videos.map((video) => (
+      <VideoCard
+        key={video._id}
+        video={video}
+        progress={progress}
+        user={user}
+        handleDelete={() => handleDelete(video._id)}
+      />
+    ))}
+  </div>
+)}
         </div>
       </div>
     </div>

@@ -1,4 +1,7 @@
 // src/pages/UploadForm.jsx
+
+import {ClipLoader} from 'react-spinners'
+
 export default function UploadForm({
   uploading,
   uploadError,
@@ -56,21 +59,32 @@ export default function UploadForm({
         </div>
 
         <button
-          type="submit"
-          disabled={uploading}
-          style={{
-            width: '100%',
-            padding: '1rem',
-            backgroundColor: uploading ? '#9ca3af' : '#6366f1',
-            color: 'white',
-            borderRadius: '0.5rem',
-            fontWeight: '500',
-            cursor: uploading ? 'not-allowed' : 'pointer',
-            border: 'none',
-          }}
-        >
-          {uploading ? 'Uploading...' : 'Upload Video'}
-        </button>
+  type="submit"
+  disabled={uploading}
+  style={{
+    width: '100%',
+    padding: '1rem',
+    backgroundColor: uploading ? '#9ca3af' : '#6366f1',
+    color: 'white',
+    borderRadius: '0.5rem',
+    fontWeight: '500',
+    cursor: uploading ? 'not-allowed' : 'pointer',
+    border: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.75rem',
+  }}
+>
+  {uploading ? (
+    <>
+      <ClipLoader color="#ffffff" size={24} />
+      Uploading...
+    </>
+  ) : (
+    'Upload Video'
+  )}
+</button>
       </form>
     </div>
   );
