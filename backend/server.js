@@ -41,10 +41,12 @@ mongoose.connect(process.env.MONGO_URI)
 const authRoutes = require('./src/routes/auth');
 const testRoutes = require('./src/routes/test');
 const videoRoutes = require('./src/routes/video');
+const usersRoutes = require('./src/routes/users')
 
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/videos', videoRoutes);
+app.use('/api/users', usersRoutes)
 
 // Serve uploads with CORS headers
 app.use('/uploads', (req, res, next) => {

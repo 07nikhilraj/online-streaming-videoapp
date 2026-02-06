@@ -22,6 +22,13 @@ const Dashboard = () => {
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [socket, setSocket] = useState(null);
 
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      window.location.replace('/admin');
+    }
+  }, [user]);
+
+
   // Socket setup (unchanged)
   useEffect(() => {
     if (!user?.id) return;
