@@ -20,8 +20,13 @@ const uploadVideo = async (req, res) => {
 
     await video.save();
 
+    const io = req.app.get('io');
+    const { simulateProcessing } = require('../services/videoProcessing');
+
+    simulateProcessing(video._id, io);
+
     res.status(201).json({
-      message: 'Video uploaded successfully (processing will start soon)',
+      message: 'Video uploaded successfully (processing started)',
       video: {
         id: video._id,
         title: video.title,

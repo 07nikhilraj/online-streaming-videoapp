@@ -27,4 +27,35 @@ router.get('/my-videos', protect, async (req, res) => {
   }
 });
 
+// Delete video (only owner or admin)
+router.delete('/:id', protect, async (req, res) => {
+  try {
+    const video = await Video.findById(req.params.id);
+
+    if (!video) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+
+    // Only owner or admin can delete
+    if (video.uploadedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to delete this video' });
+    }
+
+    // Delete file from disk (optional – if you want to remove file)
+    const fs = require('fs');
+    const path = require('path');
+    const filePath = path.resolve(video.path);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await Video.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Video deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error deleting video' });
+  }
+});
+
 module.exports = router;
