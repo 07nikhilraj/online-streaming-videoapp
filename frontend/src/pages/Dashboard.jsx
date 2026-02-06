@@ -155,10 +155,29 @@ const Dashboard = () => {
 
   const handleLogout = () => contextLogout();
 
+  const MAX_STORAGE_MB = 500;
+  const usedStorageMB = (videos.reduce((acc, v) => acc + (v.size || 0), 0) / (1024 * 1024)).toFixed(2);
+  const usedPercentage = Math.min((usedStorageMB / MAX_STORAGE_MB) * 100, 100);
+
 return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f3e8ff, #dbeafe)', padding: '2rem 1rem' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <DashboardHeader user={user} handleLogout={handleLogout} />
+
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', marginBottom: '2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <span style={{ fontWeight: '600', color: '#374151' }}>Storage Usage</span>
+            <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{usedStorageMB}MB / {MAX_STORAGE_MB}MB</span>
+          </div>
+          <div style={{ width: '100%', height: '10px', background: '#e5e7eb', borderRadius: '5px', overflow: 'hidden' }}>
+            <div style={{ 
+              width: `${usedPercentage}%`, 
+              height: '100%', 
+              background: usedPercentage > 90 ? '#ef4444' : '#6366f1',
+              transition: 'width 0.5s ease'
+            }} />
+          </div>
+        </div>
 
         {user?.role !== 'viewer' && (
           <UploadForm
