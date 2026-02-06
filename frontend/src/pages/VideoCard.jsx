@@ -132,7 +132,7 @@ export default function VideoCard({ video, user, onShareUpdate, handleDelete, hi
         {isReady && (
           <div style={{ marginTop: '1rem', background: '#000', borderRadius: '0.5rem', overflow: 'hidden' }}>
             <video controls width="100%" style={{ display: 'block' }}>
-              <source src={`http://localhost:5000/uploads/${video.filename}`} type="video/mp4" />
+              <source src={`${import.meta.env.VITE_API_BASE_URL}/uploads/${video.filename}`} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>

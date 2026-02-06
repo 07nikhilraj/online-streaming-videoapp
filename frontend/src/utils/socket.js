@@ -9,7 +9,7 @@ export const initSocket = (userId) => {
     return socket;
   }
 
-  socket = io('http://localhost:5000', {
+  socket = io(import.meta.env.VITE_SOCKET_URL, {
     reconnection: true,
     reconnectionAttempts: 15,
     reconnectionDelay: 1000,
