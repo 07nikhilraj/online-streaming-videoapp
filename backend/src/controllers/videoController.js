@@ -1,13 +1,12 @@
+// backend/src/controllers/videoController.js
 const Video = require('../models/Video');
-const AuditLog = require('../models/AuditLog');
+const AuditLog = require('../models/Log');
+const { processVideo } = require('../services/videoProcessing');
 
 const uploadVideo = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No video file uploaded' });
-    }
+    if (!req.file) return res.status(400).json({ message: 'No file' });
 
-    // 1. Create and Save the Video
     const video = new Video({
       title: req.body.title || req.file.originalname,
       description: req.body.description || '',
@@ -17,42 +16,30 @@ const uploadVideo = async (req, res) => {
       size: req.file.size,
       mimeType: req.file.mimetype,
       uploadedBy: req.user._id,
-      status: 'pending',
       organizationId: req.user.organizationId,
+      status: 'pending',
     });
 
     await video.save();
 
-    // 2. Create Audit Log 
-    // FIXED: Changed 'newVideo' to 'video'
-    const auditlog = new AuditLog({
+    await AuditLog.create({
       action: 'VIDEO_UPLOAD',
       performedBy: req.user._id,
-      targetId: video._id, 
-      details: `Uploaded new video: "${video.title}"`
+      targetId: video._id,
+      organizationId: req.user.organizationId,
+      details: `Uploaded: "${video.title}"`
     });
 
-    await auditlog.save();
-
-    // 3. Start Processing
+    // Pass Socket.io to the processor
     const io = req.app.get('io');
-    const { simulateProcessing } = require('../services/videoProcessing');
+    processVideo(video._id, io);
 
-    simulateProcessing(video._id, io);
-
-    // 4. Send Success Response
     res.status(201).json({
-      message: 'Video uploaded successfully (processing started)',
-      video: {
-        id: video._id,
-        title: video.title,
-        originalName: video.originalName,
-        status: video.status,
-      },
+      message: 'Upload successful, processing started',
+      video: { id: video._id, status: 'pending' }
     });
   } catch (err) {
-    console.error("Upload Controller Error:", err); // This will now show you the exact error in your console
-    res.status(500).json({ message: 'Error uploading video' });
+    res.status(500).json({ message: 'Upload Controller Error' });
   }
 };
 

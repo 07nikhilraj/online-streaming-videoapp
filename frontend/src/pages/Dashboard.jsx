@@ -5,6 +5,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import toast from 'react-hot-toast'
 import { ClipLoader } from 'react-spinners';
+import { getSocket } from '../utils/socket';
 
 import DashboardHeader from './DashboardHeader';
 import UploadForm from './UploadForm';
@@ -30,50 +31,50 @@ const Dashboard = () => {
 
 
   // Socket setup (unchanged)
-  useEffect(() => {
-    if (!user?.id) return;
+  // useEffect(() => {
+  //   if (!user?.id) return;
 
-    console.log('Initializing socket for user:', user.id);
+  //   console.log('Initializing socket for user:', user.id);
 
-    const newSocket = io('http://localhost:5000', {
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-      transports: ['websocket'],
-    });
+  //   const newSocket = io('http://localhost:5000', {
+  //     reconnection: true,
+  //     reconnectionAttempts: Infinity,
+  //     reconnectionDelay: 1000,
+  //     transports: ['websocket'],
+  //   });
 
-    setSocket(newSocket);
+  //   setSocket(newSocket);
 
-    newSocket.on('connect', () => {
-      console.log('Socket CONNECTED:', newSocket.id);
-      newSocket.emit('joinRoom', user.id.toString());
-      console.log('Joined room:', user.id.toString());
-    });
+  //   newSocket.on('connect', () => {
+  //     console.log('Socket CONNECTED:', newSocket.id);
+  //     newSocket.emit('joinRoom', user.id.toString());
+  //     console.log('Joined room:', user.id.toString());
+  //   });
 
-    newSocket.on('connect_error', (err) => {
-      console.error('Socket error:', err.message);
-    });
+  //   newSocket.on('connect_error', (err) => {
+  //     console.error('Socket error:', err.message);
+  //   });
 
-    newSocket.on('processingProgress', (data) => {
-      console.log('PROGRESS RECEIVED:', data);
-      setProgress((prev) => {
-        const updated = { ...prev, [data.videoId]: data.progress };
-        console.log('Updated progress state:', updated);
-        return updated;
-      });
-      if (data.progress >= 100) {
-        fetchVideos();
-      }
-    });
+  //   newSocket.on('processingProgress', (data) => {
+  //     console.log('PROGRESS RECEIVED:', data);
+  //     setProgress((prev) => {
+  //       const updated = { ...prev, [data.videoId]: data.progress };
+  //       console.log('Updated progress state:', updated);
+  //       return updated;
+  //     });
+  //     if (data.progress >= 100) {
+  //       fetchVideos();
+  //     }
+  //   });
 
-    newSocket.on('reconnect', () => {
-      newSocket.emit('joinRoom', user.id.toString());
-    });
+  //   newSocket.on('reconnect', () => {
+  //     newSocket.emit('joinRoom', user.id.toString());
+  //   });
 
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [user?.id]);
+  //   return () => {
+  //     newSocket.disconnect();
+  //   };
+  // }, [user?.id]);
 
   // Fetch videos - different endpoint for viewers
   const fetchVideos = async () => {
@@ -92,6 +93,25 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) fetchVideos();
   }, [user]);
+
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !user?.id) return;
+
+    const handleStatusUpdate = (data) => {
+      console.log('[Dashboard] Received videoStatusUpdate:', data);
+      if (data.status === 'ready') {
+        fetchVideos(); // Refresh list when processing finishes
+      }
+    };
+
+    socket.on('videoStatusUpdate', handleStatusUpdate);
+
+    return () => {
+      socket.off('videoStatusUpdate', handleStatusUpdate);
+    };
+  }, [user?.id]);
 
   const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 
@@ -116,7 +136,7 @@ const Dashboard = () => {
         _id: res.data.video.id,
         title: title || selectedFile.name,
         originalName: selectedFile.name,
-        status: 'processing',
+        status: 'pending',
       };
       setVideos((prev) => [newVideo, ...prev]);
       setProgress((prev) => ({ ...prev, [newVideo._id]: 0 }));
@@ -224,7 +244,7 @@ return (
                 <VideoCard
                   key={video._id}
                   video={video}
-                  progress={progress}
+                  // progress={progress}
                   user={user}
                   onShareUpdate={handleShareUpdate}
                   handleDelete={() => handleDelete(video._id)}

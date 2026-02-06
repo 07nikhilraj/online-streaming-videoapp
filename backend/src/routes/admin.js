@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AuditLog = require('../models/AuditLog');
+const AuditLog = require('../models/Log');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 // @desc    Get all system audit logs

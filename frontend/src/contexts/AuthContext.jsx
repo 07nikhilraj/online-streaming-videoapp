@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { initSocket, socket } from '../utils/socket'; // Import socket helpers
 
 const AuthContext = createContext();
 
@@ -13,23 +14,30 @@ export const AuthProvider = ({ children }) => {
 
   axios.defaults.baseURL = 'http://localhost:5000';
 
+  // 1. Initialize Socket whenever user changes
+  useEffect(() => {
+    if (user && user.id) {
+      // Create connection and join the user's private room
+      const s = initSocket(user.id);
+      
+      return () => {
+        if (s) s.disconnect(); // Cleanup on unmount or logout
+      };
+    }
+  }, [user]);
+
   useEffect(() => {
     const interceptor = axios.interceptors.request.use(
       (config) => {
         const currentToken = localStorage.getItem('token');
         if (currentToken) {
           config.headers.Authorization = `Bearer ${currentToken}`;
-        } else {
-          delete config.headers.Authorization;
         }
         return config;
       },
       (error) => Promise.reject(error)
     );
-
-    return () => {
-      axios.interceptors.request.eject(interceptor);
-    };
+    return () => axios.interceptors.request.eject(interceptor);
   }, []);
 
   useEffect(() => {
@@ -37,25 +45,22 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         try {
-          // Decode JWT to get user info
           const payload = JSON.parse(atob(storedToken.split('.')[1]));
           setUser({
             id: payload.id,
             email: payload.email,
             role: payload.role,
-            organizationId: payload.organizationId, // Added organizationId from JWT
+            organizationId: payload.organizationId,
           });
           setToken(storedToken);
         } catch (err) {
-          console.error('Invalid token on load', err);
           logout();
         }
       }
       setLoading(false);
     };
-
     loadUser();
-  }, []); 
+  }, []);
 
   const login = async (email, password) => {
     try {
@@ -70,14 +75,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // UPDATED: Added organizationId parameter
   const register = async (email, password, role = 'viewer', organizationId) => {
     try {
       const res = await axios.post('/api/auth/register', { 
         email, 
         password, 
         role, 
-        organizationId // Now sending orgId to backend
+        organizationId 
       });
       const { token: newToken, user: newUser } = res.data;
       localStorage.setItem('token', newToken);
@@ -90,6 +94,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    if (socket) socket.disconnect(); // Explicitly kill socket on logout
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);

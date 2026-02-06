@@ -5,7 +5,7 @@ const upload = require('../utils/multerConfig');
 const { uploadVideo } = require('../controllers/videoController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 const Video = require('../models/Video');
-const AuditLog = require('../models/AuditLog');
+const AuditLog = require('../models/Log');
 
 const router = express.Router();
 
@@ -64,11 +64,11 @@ router.get('/admin/all', protect, restrictTo('admin'), async (req, res) => {
 // ==========================================
 
 router.post(
-    '/upload',
-    protect,
-    restrictTo('editor', 'admin'),
-    upload.single('video'),     
-    uploadVideo // Ensure controller sets req.user.organizationId on the model
+  '/upload',
+  protect,
+  restrictTo('editor', 'admin'),
+  upload.single('video'),     
+  uploadVideo
 );
 
 // ==========================================
@@ -142,33 +142,56 @@ router.patch('/:id/share', protect, async (req, res) => {
 
 // Assign a specific viewer
 router.patch('/:id/assign', protect, restrictTo('editor', 'admin'), async (req, res) => {
-    try {
-        const { email } = req.body;
-        const video = await Video.findOne({ _id: req.params.id, organizationId: req.user.organizationId });
+  try {
+    const { email } = req.body;
 
-        if (!video) return res.status(404).json({ message: 'Video not found' });
-        
-        if (video.uploadedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Not authorized' });
-        }
-
-        const normalizedEmail = email.toLowerCase().trim();
-        if (!video.allowedViewers.includes(normalizedEmail)) {
-            video.allowedViewers.push(normalizedEmail);
-            await video.save();
-            
-            await AuditLog.create({
-                action: 'VIDEO_ASSIGN',
-                performedBy: req.user._id,
-                organizationId: req.user.organizationId,
-                details: `Assigned video "${video.title}" to user ${normalizedEmail}`
-            });
-        }
-
-        res.json({ message: 'User assigned successfully', allowedViewers: video.allowedViewers });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+    if (!email || typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ message: 'Valid email is required' });
     }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const video = await Video.findOne({ 
+      _id: req.params.id, 
+      organizationId: req.user.organizationId 
+    });
+
+    if (!video) return res.status(404).json({ message: 'Video not found' });
+
+    // Ownership check
+    if (video.uploadedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Ensure array exists (defensive)
+    if (!Array.isArray(video.allowedViewers)) {
+      video.allowedViewers = [];
+    }
+
+    if (!video.allowedViewers.includes(normalizedEmail)) {
+      video.allowedViewers.push(normalizedEmail);
+      await video.save();
+
+      await AuditLog.create({
+        action: 'VIDEO_ASSIGN',
+        performedBy: req.user._id,
+        organizationId: req.user.organizationId,
+        details: `Assigned video "${video.title}" to user ${normalizedEmail}`
+      });
+    }
+
+    res.json({ 
+      message: 'User assigned successfully', 
+      allowedViewers: video.allowedViewers 
+    });
+
+  } catch (err) {
+    console.error('[ASSIGN ERROR]', err.message || err);
+    res.status(500).json({ 
+      message: 'Server error while assigning video',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined 
+    });
+  }
 });
 
 // ==========================================

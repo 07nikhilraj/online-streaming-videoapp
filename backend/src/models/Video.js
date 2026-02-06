@@ -9,7 +9,7 @@ const videoSchema = new mongoose.Schema({
   path: { type: String, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'processing', 'processed', 'failed'],
+    enum: ['pending', 'analyzing', 'processing', 'ready', 'failed'],
     default: 'pending'
   },
   size: {
@@ -17,9 +17,9 @@ const videoSchema = new mongoose.Schema({
     required: true
   },
   uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  sensitivity: { type: String, default: 'safe' },
+  sensitivity: {type: String, enum: ['unknown', 'clean', 'flagged'], default: 'unknown'},
   isShared: { type: Boolean, default: false }, 
-  allowedViewers: [{ type: String }],
+  allowedViewers: [{ type: String, default:[] }],
   createdAt: { type: Date, default: Date.now },
   // Add to Video Schema
   organizationId: { 
