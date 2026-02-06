@@ -17,7 +17,32 @@ npm install aws-sdk
 6. Uncheck **Block all public access** (we need public read access for videos)
 7. Click **Create bucket**
 
-## Step 3: Create IAM User with S3 Access
+## Step 3: Enable Public Read Access via Bucket Policy
+
+1. Click on your newly created bucket
+2. Go to **Permissions** tab
+3. Scroll down to **Bucket policy**
+4. Click **Edit**
+5. Paste this policy (replace `BUCKET_NAME` with your actual bucket name):
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::BUCKET_NAME/videos/*"
+        }
+    ]
+}
+```
+
+6. Click **Save changes**
+
+## Step 4: Create IAM User with S3 Access
 
 1. Go to **IAM** in AWS Console
 2. Click **Users** → **Create user**
@@ -34,25 +59,25 @@ npm install aws-sdk
     - **Access Key ID**
     - **Secret Access Key**
 
-## Step 4: Update Backend Environment Variables
+## Step 5: Update Backend Environment Variables
 
 Replace these in your `.env` file with actual values:
 
 ```env
-AWS_ACCESS_KEY_ID=your_access_key_from_step_3
-AWS_SECRET_ACCESS_KEY=your_secret_key_from_step_3
+AWS_ACCESS_KEY_ID=your_access_key_from_step_4
+AWS_SECRET_ACCESS_KEY=your_secret_key_from_step_4
 AWS_REGION=us-east-1
 AWS_BUCKET_NAME=streaming-app-videos-[your-username]
 ```
 
-## Step 5: Update on Render
+## Step 6: Update on Render
 
 1. Go to your backend service on Render.com
 2. Go to **Environment** tab
 3. Add these environment variables with your actual AWS credentials
 4. Deploy
 
-## Step 6: Test Upload
+## Step 7: Test Upload
 
 1. Login to your app as a user
 2. Upload a test video
@@ -67,9 +92,11 @@ AWS_BUCKET_NAME=streaming-app-videos-[your-username]
 ## Troubleshooting
 
 - **Access Denied**: Check IAM user has S3FullAccess permission
+- **Bucket policy error**: Make sure you replaced BUCKET_NAME in the policy
+- **ACL error**: Make sure bucket policy is set correctly (we removed ACL requirement)
 - **Bucket not found**: Verify bucket name in .env matches exactly
 - **Upload fails**: Check AWS credentials are correct and not expired
-- **Video won't play**: Ensure bucket is set to public read access
+- **Video won't play**: Ensure bucket policy allows public read access
 
 ## Video URL Format
 

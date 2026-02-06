@@ -25,7 +25,6 @@ const uploadToS3 = async (fileBuffer, originalFilename) => {
       Key: fileName,
       Body: fileBuffer,
       ContentType: 'video/mp4', // Adjust based on actual type if needed
-      ACL: 'public-read', // Makes file publicly accessible
     };
 
     const result = await s3.upload(params).promise();
