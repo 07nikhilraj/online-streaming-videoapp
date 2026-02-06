@@ -91,6 +91,11 @@ export default function VideoCard({ video, progress, user, handleDelete }) {
   </div>
 )}
 
+
+        {/* <div style={{ fontSize: '0.8rem', color: 'gray', marginBottom: '0.5rem' }}>
+          DEBUG: user.id = {user?.id} | video.uploadedBy = {video.uploadedBy} | role = {user?.role}
+        </div> */}
+
         {/* Delete Button - hidden for viewers */}
         {(video.uploadedBy === user?.id || user?.role === 'admin') && user?.role !== 'viewer' && (
           <button

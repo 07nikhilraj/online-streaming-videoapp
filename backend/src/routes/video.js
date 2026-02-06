@@ -17,7 +17,7 @@ router.post(
 router.get('/my-videos', protect, async (req, res) => {
   try {
     const videos = await Video.find({ uploadedBy: req.user._id })
-      .select('title originalName filename path size status sensitivity createdAt')
+      .select('title originalName filename path size status sensitivity uploadedBy createdAt')
       .sort({ createdAt: -1 }); // newest first
 
     res.status(200).json(videos);
