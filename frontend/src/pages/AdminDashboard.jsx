@@ -56,6 +56,12 @@ export default function AdminDashboard() {
     );
   };
 
+  const stats = {
+    totalUsers: users.length,
+    totalVideos: videos.length,
+    storageUsed: (videos.reduce((acc, v) => acc + (v.size || 0), 0) / (1024 * 1024)).toFixed(2) // MB
+    };
+
   // 3. Render
   return (
     <div style={{ 
@@ -85,6 +91,19 @@ export default function AdminDashboard() {
               Manage system users, roles, and global video content.
             </p>
           </header>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        {[
+            { label: 'Total Users', value: stats.totalUsers, color: '#6366f1' },
+            { label: 'Active Uploads', value: stats.totalVideos, color: '#8b5cf6' },
+            { label: 'Storage Used', value: `${stats.storageUsed} MB`, color: '#ec4899' }
+        ].map((stat, idx) => (
+            <div key={idx} style={{ background: '#f9fafb', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e5e7eb' }}>
+            <p style={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>{stat.label}</p>
+            <p style={{ color: stat.color, fontSize: '1.75rem', fontWeight: '700' }}>{stat.value}</p>
+            </div>
+        ))}
+        </div>
 
           {/* Section 1: User Management */}
           <section style={{ marginBottom: '4rem' }}>
