@@ -74,23 +74,36 @@ router.get('/all', protect, async (req, res) => {
 });
 
 // Toggle share status (only owner)
+// Explicit share/unshare (only owner or admin)
 router.patch('/:id/share', protect, async (req, res) => {
   try {
+    const { isShared } = req.body;
+    if (typeof isShared !== 'boolean') {
+      return res.status(400).json({ message: 'isShared must be boolean' });
+    }
     const video = await Video.findById(req.params.id);
-    if (!video) return res.status(404).json({ message: 'Video not found' });
-
-    if (video.uploadedBy.toString() !== req.user._id.toString()) {
+    if (!video) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+    if (
+      video.uploadedBy.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin'
+    ) {
       return res.status(403).json({ message: 'Not authorized' });
     }
-
-    video.isShared = !video.isShared; // toggle
+    video.isShared = isShared;
     await video.save();
-
-    res.json({ message: 'Share status updated', isShared: video.isShared });
+    res.json({
+      message: 'Share status updated',
+      videoId: video._id,
+      isShared: video.isShared,
+    });
   } catch (err) {
+    console.error('Share update error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Update title & description (only owner)
 router.patch('/:id', protect, async (req, res) => {

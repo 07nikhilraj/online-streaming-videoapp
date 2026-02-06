@@ -72,14 +72,10 @@ const Dashboard = () => {
   const fetchVideos = async () => {
     setLoadingVideos(true);
     try {
-      let url = '/api/videos/my-videos';
-      if (user?.role === 'viewer') {
-        url = '/api/videos/all'; // global list for viewers
-      }
+      let url = user?.role === 'viewer' ? '/api/videos/shared-videos' : '/api/videos/my-videos';
       const res = await axios.get(url);
       setVideos(res.data);
     } catch (err) {
-      console.error(err);
       setUploadError('Failed to load videos');
     } finally {
       setLoadingVideos(false);
@@ -141,15 +137,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleShareUpdate = (videoId, isShared) => {
+  setVideos((prev) =>
+    prev.map((v) =>
+      v._id === videoId ? { ...v, isShared } : v
+    )
+  );
+};
+
+
   const handleLogout = () => contextLogout();
 
-  return (
+return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f3e8ff, #dbeafe)', padding: '2rem 1rem' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        {/* Header */}
         <DashboardHeader user={user} handleLogout={handleLogout} />
 
-        {/* Upload Form - hidden for viewers */}
         {user?.role !== 'viewer' && (
           <UploadForm
             uploading={uploading}
@@ -163,37 +166,29 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Videos Section */}
         <div style={{ background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', borderRadius: '1rem', padding: '2rem' }}>
           <h2 style={{ fontSize: '1.75rem', fontWeight: '600', marginBottom: '1.5rem', color: '#1f2937' }}>
-            {user?.role === 'viewer' ? 'All Videos' : 'Your Videos'}
+            {user?.role === 'viewer' ? 'Shared Videos' : 'Your Videos'}
           </h2>
 
-          // In Dashboard return (inside Videos Section)
-{loadingVideos ? (
-  <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-    <ClipLoader color="#6366f1" size={50} />
-    <p style={{ marginTop: '1rem', color: '#4b5563', fontSize: '1.1rem' }}>
-      Loading your videos...
-    </p>
-  </div>
-) : videos.length === 0 ? (
-  <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>
-    No videos available.
-  </p>
-) : (
-  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-    {videos.map((video) => (
-      <VideoCard
-        key={video._id}
-        video={video}
-        progress={progress}
-        user={user}
-        handleDelete={() => handleDelete(video._id)}
-      />
-    ))}
-  </div>
-)}
+          {loadingVideos ? (
+            <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>Loading...</p>
+          ) : videos.length === 0 ? (
+            <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>No videos available.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              {videos.map((video) => (
+                <VideoCard
+                  key={video._id}
+                  video={video}
+                  progress={progress}
+                  user={user}
+                  onShareUpdate={handleShareUpdate}
+                  handleDelete={() => handleDelete(video._id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

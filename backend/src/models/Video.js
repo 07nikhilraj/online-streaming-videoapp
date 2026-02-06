@@ -13,7 +13,7 @@ const videoSchema = new mongoose.Schema({
     default: 'pending'
   },
   uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  sensitivity: { type: String, enum: ['safe', 'flagged'], default: 'safe' },
+  sensitivity: { type: String, default: 'safe' },
   isShared: { type: Boolean, default: false }, // ← NEW FIELD
   createdAt: { type: Date, default: Date.now },
 });
