@@ -73,4 +73,57 @@ router.get('/all', protect, async (req, res) => {
   }
 });
 
+// Toggle share status (only owner)
+router.patch('/:id/share', protect, async (req, res) => {
+  try {
+    const video = await Video.findById(req.params.id);
+    if (!video) return res.status(404).json({ message: 'Video not found' });
+
+    if (video.uploadedBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    video.isShared = !video.isShared; // toggle
+    await video.save();
+
+    res.json({ message: 'Share status updated', isShared: video.isShared });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update title & description (only owner)
+router.patch('/:id', protect, async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const video = await Video.findById(req.params.id);
+    if (!video) return res.status(404).json({ message: 'Video not found' });
+
+    if (video.uploadedBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    if (title !== undefined) video.title = title;
+    if (description !== undefined) video.description = description;
+    await video.save();
+
+    res.json({ message: 'Video updated', video });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get shared videos (for viewers)
+router.get('/shared-videos', protect, async (req, res) => {
+  try {
+    const videos = await Video.find({ isShared: true })
+      .select('title originalName filename mimeType status sensitivity uploadedBy createdAt isShared')
+      .sort({ createdAt: -1 });
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 module.exports = router;
