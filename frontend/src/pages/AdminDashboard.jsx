@@ -60,10 +60,13 @@ export default function AdminDashboard() {
     );
   };
 
-  const stats = {
+  // Find your stats calculation logic and update it to this:
+    const totalBytes = videos.reduce((acc, v) => acc + (Number(v.size) || 0), 0);
+    const stats = {
     totalUsers: users.length,
     totalVideos: videos.length,
-    storageUsed: (videos.reduce((acc, v) => acc + (v.size || 0), 0) / (1024 * 1024)).toFixed(2) // MB
+    // 1024 * 1024 converts Bytes to Megabytes
+    storageUsed: (totalBytes / (1024 * 1024)).toFixed(2) 
     };
 
   // 3. Render

@@ -9,7 +9,7 @@ const simulateProcessing = async (videoId, io) => {
     await video.save();
 
     // Simulate progress
-    for (let progress = 0; progress <= 100; progress += 10) {
+    for (let progress = 0; progress <= 100; progress += 50) {
       await new Promise(resolve => setTimeout(resolve, 2000)); // 2s per 10%
       console.log(`Emitting progress ${progress}% to room ${video.uploadedBy.toString()}`);
       io.to(video.uploadedBy.toString()).emit('processingProgress', {

@@ -131,7 +131,8 @@ export default function VideoCard({ video, progress = {}, user, onShareUpdate, h
               preload="metadata"
               crossOrigin="anonymous"
             >
-              <source src={`http://localhost:5000/uploads/${video.filename}`} type={video.mimeType || "video/mp4"} />
+              <source src={`http://localhost:5000/uploads/${video.filename}`} type="video/quicktime" />
+              <source src={`http://localhost:5000/uploads/${video.filename}`} type={"video/mp4"} />
               Your browser does not support the video tag.
             </video>
           </div>

@@ -12,6 +12,10 @@ const videoSchema = new mongoose.Schema({
     enum: ['pending', 'processing', 'processed', 'failed'],
     default: 'pending'
   },
+  size: {
+    type: String,
+    required: true
+  },
   uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   sensitivity: { type: String, default: 'safe' },
   isShared: { type: Boolean, default: false }, // ← NEW FIELD
