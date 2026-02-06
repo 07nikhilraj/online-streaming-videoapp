@@ -62,23 +62,34 @@ export default function VideoCard({ video, progress, user, handleDelete }) {
         )}
 
         {/* Video Player */}
-        {video.status === 'processed' && (
-          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-            <video
-              controls
-              width="240"
-              style={{ borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: '#000' }}
-              preload="metadata"
-              crossOrigin="anonymous"
-              onClick={() => window.open(`/uploads/${video.filename}`, '_blank')}
-            >
-              <source src={`/uploads/${video.filename}`} type={video.mimeType || 'video/mp4'} />
-              <p style={{ color: '#9ca3af', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>
-                Video format not supported
-              </p>
-            </video>
-          </div>
-        )}
+{video.status === 'processed' && (
+  <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+    <video
+      controls
+      width="240"
+      style={{ borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: '#000' }}
+      preload="metadata"
+      crossOrigin="anonymous"
+      onClick={() => window.open(`/uploads/${video.filename}`, '_blank')}
+    >
+      {/* Primary: use the actual mimeType from DB */}
+      <source src={`http://localhost:5000/uploads/${video.filename}`} type={video.mimeType} />
+
+      {/* Fallback 1: force mp4 */}
+      <source src={`http://localhost:5000/uploads/${video.filename}`} type="video/mp4" />
+
+      {/* Fallback 2: force quicktime for .mov */}
+      <source src={`http://localhost:5000/uploads/${video.filename}`} type="video/quicktime" />
+
+      {/* Fallback 3: generic video */}
+      <source src={`http://localhost:5000/uploads/${video.filename}`} type="video/*" />
+
+      <p style={{ color: '#9ca3af', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>
+        Your browser does not support this video format.
+      </p>
+    </video>
+  </div>
+)}
 
         {/* Delete Button - hidden for viewers */}
         {(video.uploadedBy === user?.id || user?.role === 'admin') && user?.role !== 'viewer' && (

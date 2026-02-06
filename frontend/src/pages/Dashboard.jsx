@@ -20,7 +20,7 @@ const Dashboard = () => {
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [socket, setSocket] = useState(null);
 
-  // Socket setup
+  // Socket setup (unchanged)
   useEffect(() => {
     if (!user?.id) return;
 
@@ -66,11 +66,15 @@ const Dashboard = () => {
     };
   }, [user?.id]);
 
-  // Fetch videos
+  // Fetch videos - different endpoint for viewers
   const fetchVideos = async () => {
     setLoadingVideos(true);
     try {
-      const res = await axios.get('/api/videos/my-videos');
+      let url = '/api/videos/my-videos';
+      if (user?.role === 'viewer') {
+        url = '/api/videos/all'; // global list for viewers
+      }
+      const res = await axios.get(url);
       setVideos(res.data);
     } catch (err) {
       console.error(err);
@@ -81,8 +85,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchVideos();
-  }, []);
+    if (user) fetchVideos();
+  }, [user]);
 
   const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 
@@ -138,7 +142,7 @@ const Dashboard = () => {
         {/* Header */}
         <DashboardHeader user={user} handleLogout={handleLogout} />
 
-        {/* Upload Form - only for non-viewers */}
+        {/* Upload Form - hidden for viewers */}
         {user?.role !== 'viewer' && (
           <UploadForm
             uploading={uploading}
@@ -154,12 +158,14 @@ const Dashboard = () => {
 
         {/* Videos Section */}
         <div style={{ background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', borderRadius: '1rem', padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: '600', marginBottom: '1.5rem', color: '#1f2937' }}>Your Videos</h2>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: '600', marginBottom: '1.5rem', color: '#1f2937' }}>
+            {user?.role === 'viewer' ? 'All Videos' : 'Your Videos'}
+          </h2>
 
           {loadingVideos ? (
             <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>Loading videos...</p>
           ) : videos.length === 0 ? (
-            <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>No videos uploaded yet.</p>
+            <p style={{ textAlign: 'center', padding: '3rem 0', color: '#6b7280' }}>No videos available.</p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
               {videos.map((video) => (
