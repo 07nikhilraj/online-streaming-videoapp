@@ -1,18 +1,10 @@
 const multer = require('multer');
 const path = require('path');
 
-// Storage (keep as is)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Use memory storage since we'll upload to S3
+const storage = multer.memoryStorage();
 
-// FIXED fileFilter – always call cb(), use Error object for rejection
+// File filter – only allow video files
 const fileFilter = (req, file, cb) => {
   console.log('Received mimetype:', file.mimetype); // debug
 

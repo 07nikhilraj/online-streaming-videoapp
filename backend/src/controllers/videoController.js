@@ -2,17 +2,22 @@
 const Video = require('../models/Video');
 const AuditLog = require('../models/Log');
 const { processVideo } = require('../services/videoProcessing');
+const { uploadToS3 } = require('../services/s3Service');
 
 const uploadVideo = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file' });
 
+    // Upload to S3
+    const s3Upload = await uploadToS3(req.file.buffer, req.file.originalname);
+
     const video = new Video({
       title: req.body.title || req.file.originalname,
       description: req.body.description || '',
-      filename: req.file.filename,
+      filename: s3Upload.filename,
       originalName: req.file.originalname,
-      path: req.file.path,
+      path: s3Upload.url, // Store S3 URL instead of local path
+      s3Key: s3Upload.key, // Store S3 key for deletion later
       size: req.file.size,
       mimeType: req.file.mimetype,
       uploadedBy: req.user._id,
@@ -39,7 +44,8 @@ const uploadVideo = async (req, res) => {
       video: { id: video._id, status: 'pending' }
     });
   } catch (err) {
-    res.status(500).json({ message: 'Upload Controller Error' });
+    console.error('Upload error:', err);
+    res.status(500).json({ message: 'Upload Controller Error: ' + err.message });
   }
 };
 

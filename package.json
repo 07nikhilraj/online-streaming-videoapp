@@ -5,5 +5,8 @@
     "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
     "start": "cd backend && node server.js",
     "build": "echo \"Skipping build – backend only\""
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1693.0"
   }
 }

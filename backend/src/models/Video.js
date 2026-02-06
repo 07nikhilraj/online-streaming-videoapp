@@ -7,6 +7,7 @@ const videoSchema = new mongoose.Schema({
   filename: { type: String, required: true },
   mimeType: { type: String, required: true },
   path: { type: String, required: true },
+  s3Key: { type: String }, // S3 object key for deletion
   status: { 
     type: String, 
     enum: ['pending', 'analyzing', 'processing', 'ready', 'failed'],
